@@ -1,0 +1,68 @@
+:root{ --accent:#0b66ff; --success:#0b9f3b; --danger:#e03b3b; --muted:#6b7280; --card-bg:#ffffff; --surface:#f3f6fb; --glass:rgba(255,255,255,0.6); --shadow: 0 8px 28px rgba(16,24,40,0.06); font-family:Inter, system-ui, Arial }
+body{margin:0;padding:0;background:var(--surface);color:#111;-webkit-font-smoothing:antialiased}
+.app{max-width:1100px;margin:28px auto;padding:20px;background:linear-gradient(180deg, rgba(255,255,255,0.9), rgba(255,255,255,0.95));border-radius:12px;box-shadow:var(--shadow)}
+.header{display:flex;justify-content:space-between;align-items:center}
+.header .title{font-size:20px;font-weight:700;color:#0f172a}
+.header .subtitle{color:var(--muted);font-size:13px}
+.form{display:flex;flex-direction:column;gap:10px;max-width:520px}
+.form label{display:flex;flex-direction:column;font-size:14px}
+.form input{padding:10px;border:1px solid #e6edf6;border-radius:10px;background:linear-gradient(180deg,#fff,#fbfdff)}
+.form button{padding:10px 14px;background:var(--accent);color:#fff;border:none;border-radius:10px;box-shadow:0 6px 18px rgba(11,102,255,0.12)}
+.success{color:var(--success)}
+.error{color:var(--danger)}
+.note{font-size:13px;color:var(--muted)}
+.panel{background:var(--card-bg);border-radius:12px;padding:16px;box-shadow:0 6px 18px rgba(10,20,40,0.04);margin-bottom:18px}
+.roster{width:100%;border-collapse:separate;border-spacing:0;margin-top:12px;background:transparent}
+.roster th, .roster td{padding:12px 14px;text-align:left;border-bottom:1px solid #f0f4fb}
+.roster thead th{background:linear-gradient(180deg,#f4f8ff,#eef6ff);font-weight:700;color:#123;color:var(--muted);border-bottom:2px solid #e3ebff}
+.roster tbody tr{background:rgba(255,255,255,0.6)}
+.roster tbody tr:hover{background:linear-gradient(90deg,rgba(11,102,255,0.03),rgba(11,102,255,0.01));transform:translateY(-1px)}
+.card-row{display:flex;gap:12px;align-items:center}
+
+/* Controls and layout */
+.controls{display:flex;gap:12px;flex-wrap:wrap;align-items:center;margin-bottom:12px}
+.controls .input, .controls select{padding:10px;border-radius:10px;border:1px solid #e6edf6;background:#fff}
+.btn{padding:8px 12px;border-radius:10px;border:0;background:var(--accent);color:#fff;cursor:pointer;box-shadow:0 6px 18px rgba(11,102,255,0.12)}
+.btn.secondary{background:#fff;border:1px solid #e6edf6;color:#123}
+.btn.ghost{background:transparent;border:1px dashed #e6edf6;color:var(--muted)}
+.table-wrap{overflow-x:auto;border-radius:10px;padding:8px;background:linear-gradient(180deg, rgba(255,255,255,0.6), rgba(255,255,255,0.3))}
+
+.obs-cell{max-width:200px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.obs-cell[title]{cursor:help}
+
+/* Mobile adjustments */
+@media (max-width: 800px){
+  .roster th, .roster td{padding:8px;font-size:13px}
+  .controls{gap:8px}
+  .col-university, .col-phone{display:none}
+}
+
+/* Hide less relevant columns when user toggles the option */
+.table-wrap.hide-less .col-university,
+.table-wrap.hide-less .col-phone{display:none !important}
+
+.paid-pill{border:none;padding:6px 10px;border-radius:14px;color:#fff;cursor:pointer}
+.paid-pill.paid{background:var(--success)}
+.paid-pill.not-paid{background:#999}
+
+.note-icon{margin-left:6px;color:#e6a800;font-size:14px;vertical-align:middle}
+.note-icon{background:transparent;border:0;padding:0;margin-left:6px;color:#e6a800;font-size:14px;vertical-align:middle;cursor:pointer}
+
+.modal-overlay{position:fixed;left:0;top:0;width:100%;height:100%;background:rgba(3,6,23,0.45);display:flex;align-items:center;justify-content:center;z-index:60}
+.modal{background:linear-gradient(180deg,#fff,#fbfdff);padding:18px;border-radius:12px;max-width:520px;width:94%;box-shadow:0 20px 50px rgba(12,20,30,0.25)}
+.modal h3{margin-top:0}
+.note-content{white-space:pre-wrap;margin-top:8px;color:var(--muted)}
+.modal .close{margin-top:12px;padding:8px 12px;background:#f3f4f6;border-radius:8px;border:0}
+
+.fare-inline{font-weight:700;color:#0f172a}
+
+.attendance-paid-btn{padding:8px 12px;border-radius:10px;border:0;cursor:pointer;background:#eef2ff;color:#0f172a}
+.attendance-paid-btn.paid{background:var(--success);color:#fff}
+.attendance-paid-btn.not-paid{background:#f3f4f6;color:#666}
+
+.attendance .roster th, .attendance .roster td{padding:10px 12px}
+.attendance .roster td select{font-size:13px;padding:6px;border-radius:8px}
+@media (max-width: 600px){
+  .attendance .roster th, .attendance .roster td{padding:8px 8px;font-size:13px}
+  .attendance .roster td .fare-inline{font-size:13px}
+}
