@@ -24,6 +24,8 @@ export default function AdminAttendance(){
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
   const [attendance, setAttendance] = useState({})
+  const [attendanceRows, setAttendanceRows] = useState([])
+  const [displayRows, setDisplayRows] = useState([])
   const [weekId, setWeekId] = useState(nextSaturdayId())
   const [weekNote, setWeekNote] = useState('')
 
@@ -71,6 +73,42 @@ export default function AdminAttendance(){
     })
     return unsub
   },[user])
+
+  // when attendanceRows change we want to initialize attendance state
+  useEffect(()=>{
+    if(attendanceRows && attendanceRows.length){
+      // populate attendance map from attendanceRows
+      const map = {}
+      attendanceRows.forEach(r=>{
+        // r.registrationId may be present (if saved from registrations)
+        const id = r.registrationId || r.id
+        map[id] = { present: true, tripType: r.tripType || 'ida', paid: !!r.paid }
+      })
+      setAttendance(map)
+      setDisplayRows(attendanceRows)
+    } else {
+      // no saved attendance for this week — clear display (user can load registrations manually)
+      setAttendance({})
+      setDisplayRows([])
+    }
+  }, [attendanceRows])
+
+  // load attendance records for the selected week
+  useEffect(()=>{
+    if(!user) return
+    if(!weekId) return
+    const colRef = collection(db, 'attendance', weekId, 'records')
+    const q = query(colRef)
+    const unsub = onSnapshot(q, snap=>{
+      const data = snap.docs.map(d=>({ id:d.id, ...d.data() }))
+      setAttendanceRows(data)
+    }, err=>{
+      console.error('Error loading attendance for week', weekId, err)
+      // if error, clear
+      setAttendanceRows([])
+    })
+    return unsub
+  }, [user, weekId])
 
   const handleLogin = async e =>{
     e.preventDefault()
@@ -397,6 +435,13 @@ export default function AdminAttendance(){
       {loading && <p>Cargando registros...</p>}
 
       <div className="table-wrap">
+        {displayRows.length === 0 ? (
+          <div style={{padding:16}}>
+            <p className="note">No hay registros de asistencia guardados para la semana seleccionada ({weekId}).</p>
+            <p className="note">Si quieres marcar la asistencia para esta semana, carga las inscripciones:</p>
+            <button className="btn" onClick={()=> setDisplayRows(rows)}>Cargar inscripciones</button>
+          </div>
+        ) : (
         <table className="roster">
           <thead>
             <tr>
@@ -409,41 +454,46 @@ export default function AdminAttendance(){
             </tr>
           </thead>
           <tbody>
-            {rows.map(r=> (
-              <tr key={r.id}>
-                <td><input type="checkbox" checked={!!(attendance[r.id]?.present)} onChange={()=>togglePresent(r.id)} /></td>
-                <td>{r.firstName} {r.lastName}</td>
-                <td>{r.university}</td>
-                <td>{r.boardingLocation||r.otherLocation||''}</td>
+            {displayRows.map(r=> {
+              // r may be either a registration or an attendance record
+              const regId = r.registrationId || r.id
+              const first = r.firstName || r.firstName || ''
+              const last = r.lastName || r.lastName || ''
+              const uni = r.university || ''
+              const place = r.boardingLocation || r.otherLocation || r.boardingLocation || ''
+              const tripFromRow = r.tripType || r.tripType || 'ida'
+              const t = attendance[regId]?.tripType || tripFromRow
+              return (
+              <tr key={regId}>
+                <td><input type="checkbox" checked={!!(attendance[regId]?.present)} onChange={()=>togglePresent(regId)} /></td>
+                <td>{r.firstName || r.name || (r.firstName && r.lastName ? `${r.firstName} ${r.lastName}` : '')}</td>
+                <td>{uni}</td>
+                <td>{place}</td>
                 <td>
-                  {(() => {
-                    const t = attendance[r.id]?.tripType || r.tripType || 'ida'
-                    return (
-                      <div style={{display:'flex',alignItems:'center',gap:8}}>
-                        <select value={t} onChange={e=>setTripType(r.id, e.target.value)}>
-                          <option value="ida">Solo ida</option>
-                          <option value="ida_vuelta">Ida y vuelta</option>
-                          <option value="vuelta">Solo vuelta</option>
-                        </select>
-                        <span className="fare-inline">Q{fareFor(t)}.00</span>
-                      </div>
-                    )
-                  })()}
+                  <div style={{display:'flex',alignItems:'center',gap:8}}>
+                    <select value={t} onChange={e=>setTripType(regId, e.target.value)}>
+                      <option value="ida">Solo ida</option>
+                      <option value="ida_vuelta">Ida y vuelta</option>
+                      <option value="vuelta">Solo vuelta</option>
+                    </select>
+                    <span className="fare-inline">Q{fareFor(t)}.00</span>
+                  </div>
                 </td>
                 <td>
                   <button
-                    className={"attendance-paid-btn " + (attendance[r.id]?.paid ? 'paid' : 'not-paid')}
-                    onClick={()=>setPaid(r.id, !((attendance[r.id]||{}).paid))}
-                    title={attendance[r.id]?.paid ? 'Marcar como no pagado' : 'Marcar como pagado'}
-                    aria-pressed={!!(attendance[r.id]?.paid)}
+                    className={"attendance-paid-btn " + (attendance[regId]?.paid ? 'paid' : 'not-paid')}
+                    onClick={()=>setPaid(regId, !((attendance[regId]||{}).paid))}
+                    title={attendance[regId]?.paid ? 'Marcar como no pagado' : 'Marcar como pagado'}
+                    aria-pressed={!!(attendance[regId]?.paid)}
                   >
-                    {attendance[r.id]?.paid ? 'Sí' : 'No'}
+                    {attendance[regId]?.paid ? 'Sí' : 'No'}
                   </button>
                 </td>
               </tr>
-            ))}
+            )})}
           </tbody>
         </table>
+        )}
       </div>
       {confirmOpen && (
         <div className="modal-overlay" onClick={()=>setConfirmOpen(false)}>

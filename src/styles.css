@@ -66,3 +66,12 @@ body{margin:0;padding:0;background:var(--surface);color:#111;-webkit-font-smooth
   .attendance .roster th, .attendance .roster td{padding:8px 8px;font-size:13px}
   .attendance .roster td .fare-inline{font-size:13px}
 }
+
+/* Convert table rows to cards on very small screens for better UX */
+@media (max-width: 520px){
+  .table-wrap .roster{border:0}
+  .table-wrap .roster thead{display:none}
+  .table-wrap .roster tbody tr{display:block;background:#fff;border-radius:10px;margin:10px 6px;padding:12px;box-shadow:0 6px 18px rgba(10,20,40,0.04)}
+  .table-wrap .roster tbody td{display:flex;justify-content:space-between;padding:6px 0;border-bottom:0}
+  .table-wrap .roster tbody td:before{content:attr(data-label);font-weight:700;color:var(--muted);margin-right:8px}
+}
