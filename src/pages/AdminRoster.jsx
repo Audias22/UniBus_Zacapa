@@ -65,8 +65,10 @@ export default function AdminRoster(){
       const ref = doc(db, 'registrations', id)
       await updateDoc(ref, patch)
     }catch(err){
-      console.error(err)
-      alert('Error al actualizar campo')
+      console.error('updateField error', err)
+      // show more info to help debugging (will display Firebase error code/message)
+      const msg = (err && (err.code || err.message)) ? `${err.code || ''} ${err.message || ''}` : String(err)
+      alert('Error al actualizar campo: ' + msg)
     }
   }
 
