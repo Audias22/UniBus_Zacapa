@@ -1,31 +1,158 @@
-:root{ --accent:#0b66ff; --success:#0b9f3b; --danger:#e03b3b; --muted:#6b7280; --card-bg:#ffffff; --surface:#f3f6fb; --glass:rgba(255,255,255,0.6); --shadow: 0 8px 28px rgba(16,24,40,0.06); font-family:Inter, system-ui, Arial }
-body{margin:0;padding:0;background:var(--surface);color:#111;-webkit-font-smoothing:antialiased}
-.app{max-width:1100px;margin:28px auto;padding:20px;background:linear-gradient(180deg, rgba(255,255,255,0.9), rgba(255,255,255,0.95));border-radius:12px;box-shadow:var(--shadow)}
-.header{display:flex;justify-content:space-between;align-items:center}
-.header .title{font-size:20px;font-weight:700;color:#0f172a}
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap');
+*{box-sizing:border-box}
+:root{
+  /* Palette */
+  --accent: #2563eb;
+  --accent-2: #0ea5e9;
+  --success: #10b981;
+  --danger: #ef4444;
+  --muted: #6b7280;
+  --card-bg: #ffffff;
+  --surface: #f6f8fb;
+  --glass: rgba(255,255,255,0.6);
+
+  /* Shadows & sizing */
+  --shadow-lg: 0 18px 50px rgba(16,24,40,0.08);
+  --shadow-sm: 0 6px 20px rgba(16,24,40,0.04);
+
+  /* Spacing */
+  --space-xs: 6px;
+  --space-sm: 8px;
+  --space-md: 12px;
+  --space-lg: 18px;
+
+  /* Controls */
+  --input-border: #e6edf6;
+  --input-focus: rgba(37,99,235,0.14);
+  --radius: 12px;
+
+  font-family: Inter, system-ui, Arial, sans-serif;
+}
+body{margin:0;padding:0;background:linear-gradient(180deg,#f8fbff,#f6f8fb);color:#0f172a;-webkit-font-smoothing:antialiased}
+.app{max-width:1180px;margin:28px auto;padding:28px;background:transparent}
+
+/* Compact layout variables */
+:root{
+  --space-xs:6px;
+  --space-sm:8px;
+  --space-md:12px;
+  --space-lg:18px;
+}
+.header{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+.header .title{font-size:22px;font-weight:800;color:#0f172a;letter-spacing:-0.2px}
 .header .subtitle{color:var(--muted);font-size:13px}
-.form{display:flex;flex-direction:column;gap:10px;max-width:520px}
+.form{display:flex;flex-direction:column;gap:10px;max-width:560px}
 .form label{display:flex;flex-direction:column;font-size:14px}
-.form input{padding:10px;border:1px solid #e6edf6;border-radius:10px;background:linear-gradient(180deg,#fff,#fbfdff)}
-.form button{padding:10px 14px;background:var(--accent);color:#fff;border:none;border-radius:10px;box-shadow:0 6px 18px rgba(11,102,255,0.12)}
+.form .input{padding:10px;border:1px solid var(--input-border);border-radius:var(--radius);background:var(--card-bg);transition:box-shadow .14s ease, border-color .14s ease, transform .12s ease}
+.form button{padding:10px 14px;background:linear-gradient(90deg,var(--accent),var(--accent-2));color:#fff;border:none;border-radius:12px;box-shadow:var(--shadow-sm)}
+
+/* Select and input improved visuals */
+select.input{appearance:none;background-image:linear-gradient(45deg, transparent 50%, rgba(15,23,42,0.18) 50%), linear-gradient(135deg, rgba(15,23,42,0.18) 50%, transparent 50%);background-position:calc(100% - 18px) calc(50% - 5px), calc(100% - 12px) calc(50% + 5px);background-size:8px 8px,8px 8px;background-repeat:no-repeat;padding-right:36px}
+select.input::-ms-expand{display:none}
+.form .input:focus{outline:none;border-color:var(--accent);box-shadow:0 8px 30px var(--input-focus)}
+.form .input.invalid{border-color:var(--danger);box-shadow:0 6px 20px rgba(239,68,68,0.06)}
+
+/* small inline validation message */
+.field-error{color:var(--danger);font-size:12px;margin-top:6px}
+
+/* small micro animations */
+@keyframes fieldPop{0%{transform:translateY(6px);opacity:0}100%{transform:none;opacity:1}}
+@keyframes shake{0%{transform:translateX(0)}25%{transform:translateX(-6px)}50%{transform:translateX(6px)}75%{transform:translateX(-4px)}100%{transform:translateX(0)}}
+.input.shake{animation:shake .36s ease both}
+
+/* Responsive grid for forms */
+.form.form-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+.form.form-grid label{display:flex;flex-direction:column}
+.form.form-grid .input{width:100%}
+@media (max-width:720px){
+  .form.form-grid{grid-template-columns:1fr}
+}
+
+.footer{padding:12px 18px;border-radius:12px;margin-top:18px;background:linear-gradient(180deg,#fff,#fbfdff);box-shadow:var(--shadow-sm)}
+.form.form-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+.form.form-grid label{display:flex;flex-direction:column}
+.form.form-grid .input{width:100%}
+
+.footer{padding:12px 18px;border-radius:12px;margin-top:18px;background:linear-gradient(180deg,#fff,#fbfdff);box-shadow:var(--shadow-sm)}
 .success{color:var(--success)}
 .error{color:var(--danger)}
 .note{font-size:13px;color:var(--muted)}
-.panel{background:var(--card-bg);border-radius:12px;padding:16px;box-shadow:0 6px 18px rgba(10,20,40,0.04);margin-bottom:18px}
+.panel{background:linear-gradient(180deg,#ffffff,#fbfdff);border-radius:14px;padding:18px;box-shadow:var(--shadow-sm);margin-bottom:20px;border:1px solid rgba(15,23,42,0.03)}
+
+/* Add subtle page hero behind header to make title pop */
+.page-hero{background:radial-gradient(1200px 300px at 10% 0%, rgba(37,99,235,0.06), transparent 18%), linear-gradient(180deg, rgba(255,255,255,0.8), rgba(255,255,255,0.6));padding:14px;border-radius:12px;margin-bottom:18px}
+.page-hero .title{font-size:28px}
+
+/* Global link and nav styles to avoid default purple underlined links */
+a, a:visited { color: var(--accent); text-decoration: none; border-bottom: 1px solid transparent; transition: color .12s ease, border-color .12s ease; }
+a:hover, a:focus { color: var(--accent-2); border-bottom-color: rgba(14,165,233,0.18); }
+.nav-links{display:flex;gap:12px;align-items:center}
+.nav-links a{padding:6px 10px;border-radius:10px;color:var(--muted);font-weight:700;display:inline-flex;align-items:center;transition:all .14s ease}
+.nav-links a .nav-link-inner{display:inline-flex;align-items:center;gap:8px}
+.nav-links a .icon{width:18px;height:18px;display:inline-flex;align-items:center;justify-content:center;color:rgba(15,23,42,0.35)}
+.nav-links a:hover{transform:translateY(-3px);color:var(--accent-2);background:linear-gradient(90deg,rgba(14,165,233,0.06),transparent);box-shadow:0 8px 30px rgba(16,24,40,0.04)}
+.nav-links a.active{color:var(--accent);background:linear-gradient(90deg,rgba(37,99,235,0.08),transparent);box-shadow:0 10px 30px rgba(37,99,235,0.04)}
+
+/* Enhanced header styles for admin attendance */
+.header-strong .title{font-size:22px}
+.page-meta{display:flex;gap:10px;align-items:center}
+.chip{display:inline-flex;align-items:center;gap:8px;padding:8px 12px;border-radius:999px;background:linear-gradient(180deg,rgba(255,255,255,0.9),rgba(250,250,255,0.95));border:1px solid rgba(15,23,42,0.04);box-shadow:var(--shadow-sm);font-weight:600;color:var(--muted);font-size:13px}
+.chip .icon{width:14px;height:14px}
+.chip.muted{background:transparent;border:1px solid rgba(15,23,42,0.03);color:var(--muted)}
+.week-title{color:var(--accent);font-weight:800}
+.muted{color:var(--muted);font-weight:600}
+
+/* Header polish */
+.header{padding:6px 8px}
+.header .title{font-size:20px}
+.subtitle{font-size:13px;color:var(--muted)}
+
+/* compact controls */
+.controls{gap:10px}
+.controls .input{padding:8px}
+
 .roster{width:100%;border-collapse:separate;border-spacing:0;margin-top:12px;background:transparent}
 .roster th, .roster td{padding:12px 14px;text-align:left;border-bottom:1px solid #f0f4fb}
-.roster thead th{background:linear-gradient(180deg,#f4f8ff,#eef6ff);font-weight:700;color:#123;color:var(--muted);border-bottom:2px solid #e3ebff}
-.roster tbody tr{background:rgba(255,255,255,0.6)}
-.roster tbody tr:hover{background:linear-gradient(90deg,rgba(11,102,255,0.03),rgba(11,102,255,0.01));transform:translateY(-1px)}
+.roster thead th{background:linear-gradient(180deg,#f7fbff,#eef6ff);font-weight:700;color:var(--muted);border-bottom:2px solid rgba(15,23,42,0.04);position:sticky;top:0;z-index:3}
+.roster tbody tr{background:transparent;transition:transform .14s cubic-bezier(.2,.9,.2,1), box-shadow .14s ease, opacity .2s ease}
+.roster tbody tr:hover{transform:translateY(-6px);box-shadow:0 12px 30px rgba(12,20,30,0.06)}
+
+/* subtle zebra for readability (very light) */
+.roster tbody tr:nth-child(odd) td{background:linear-gradient(180deg, rgba(250,251,255,0.6), rgba(255,255,255,0.4))}
+
+@keyframes fadeInUp{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.roster tbody tr{animation:fadeInUp .26s ease both}
+
+/* flash animation when a row is toggled present */
+.roster tbody tr.flash{animation:flashPulse .6s ease both}
+@keyframes flashPulse{0%{transform:scale(1);box-shadow:none}30%{transform:scale(1.02);box-shadow:0 10px 30px rgba(37,99,235,0.08)}100%{transform:scale(1);box-shadow:none}}
 .card-row{display:flex;gap:12px;align-items:center}
 
 /* Controls and layout */
-.controls{display:flex;gap:12px;flex-wrap:wrap;align-items:center;margin-bottom:12px}
-.controls .input, .controls select{padding:10px;border-radius:10px;border:1px solid #e6edf6;background:#fff}
-.btn{padding:8px 12px;border-radius:10px;border:0;background:var(--accent);color:#fff;cursor:pointer;box-shadow:0 6px 18px rgba(11,102,255,0.12)}
-.btn.secondary{background:#fff;border:1px solid #e6edf6;color:#123}
-.btn.ghost{background:transparent;border:1px dashed #e6edf6;color:var(--muted)}
-.table-wrap{overflow-x:auto;border-radius:10px;padding:8px;background:linear-gradient(180deg, rgba(255,255,255,0.6), rgba(255,255,255,0.3))}
+.controls{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:12px}
+.controls .input, .controls select{padding:10px;border-radius:12px;border:1px solid #e6edf6;background:#fff}
+.btn{padding:9px 12px;border-radius:10px;border:0;background:linear-gradient(90deg,var(--accent),var(--accent-2));color:#fff;cursor:pointer;box-shadow:var(--shadow-sm);font-weight:700}
+.btn.secondary{background:#fff;border:1px solid #eef2ff;color:#174ea6;padding:8px 10px}
+
+/* animated micro-interactions */
+.btn{transition:transform .12s ease, box-shadow .12s ease}
+.btn:active{transform:translateY(1px)}
+.btn:hover{transform:translateY(-3px);box-shadow:0 14px 40px rgba(16,24,40,0.08)}
+
+/* Icon helper inside buttons */
+.btn .btn-icon{display:inline-flex;align-items:center;margin-right:8px}
+.btn .btn-icon svg{width:16px;height:16px;display:block}
+
+/* nice pill for paid with icon space */
+.attendance-paid-btn{display:inline-flex;align-items:center;gap:8px;padding:8px 12px;border-radius:999px}
+.attendance-paid-btn svg{width:14px;height:14px}
+
+/* overall compactness for table cells */
+.roster th, .roster td{padding:10px 12px;font-size:14px}
+.roster td .fare-inline{font-weight:800}
+.btn.secondary:hover{box-shadow:0 8px 30px rgba(15,23,42,0.04)}
+.btn.ghost{background:transparent;border:1px dashed #eef2ff;color:var(--muted)}
+.table-wrap{overflow-x:auto;border-radius:12px;padding:8px;background:linear-gradient(180deg, rgba(255,255,255,0.9), rgba(250,250,255,0.7));border:1px solid rgba(15,23,42,0.03)}
 
 .obs-cell{max-width:200px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .obs-cell[title]{cursor:help}
@@ -41,24 +168,30 @@ body{margin:0;padding:0;background:var(--surface);color:#111;-webkit-font-smooth
 .table-wrap.hide-less .col-university,
 .table-wrap.hide-less .col-phone{display:none !important}
 
-.paid-pill{border:none;padding:6px 10px;border-radius:14px;color:#fff;cursor:pointer}
-.paid-pill.paid{background:var(--success)}
-.paid-pill.not-paid{background:#999}
+.paid-pill{border:none;padding:6px 12px;border-radius:16px;color:#fff;cursor:pointer;font-weight:600}
+.paid-pill.paid{background:linear-gradient(90deg,#16a34a,#059669);box-shadow:0 8px 30px rgba(16,185,129,0.12)}
+.paid-pill.not-paid{background:#fff;border:1px solid #eef2ff;color:var(--muted)}
 
 .note-icon{margin-left:6px;color:#e6a800;font-size:14px;vertical-align:middle}
 .note-icon{background:transparent;border:0;padding:0;margin-left:6px;color:#e6a800;font-size:14px;vertical-align:middle;cursor:pointer}
 
 .modal-overlay{position:fixed;left:0;top:0;width:100%;height:100%;background:rgba(3,6,23,0.45);display:flex;align-items:center;justify-content:center;z-index:60}
-.modal{background:linear-gradient(180deg,#fff,#fbfdff);padding:18px;border-radius:12px;max-width:520px;width:94%;box-shadow:0 20px 50px rgba(12,20,30,0.25)}
+.modal{background:linear-gradient(180deg,#fff,#fbfdff);padding:20px;border-radius:12px;max-width:560px;width:94%;box-shadow:0 24px 60px rgba(12,20,30,0.18)}
 .modal h3{margin-top:0}
 .note-content{white-space:pre-wrap;margin-top:8px;color:var(--muted)}
 .modal .close{margin-top:12px;padding:8px 12px;background:#f3f4f6;border-radius:8px;border:0}
 
 .fare-inline{font-weight:700;color:#0f172a}
 
-.attendance-paid-btn{padding:8px 12px;border-radius:10px;border:0;cursor:pointer;background:#eef2ff;color:#0f172a}
-.attendance-paid-btn.paid{background:var(--success);color:#fff}
-.attendance-paid-btn.not-paid{background:#f3f4f6;color:#666}
+.attendance-paid-btn{padding:8px 12px;border-radius:999px;border:0;cursor:pointer;background:#fff;color:var(--muted);font-weight:700;border:1px solid #eef6ff}
+.attendance-paid-btn.paid{background:linear-gradient(90deg,#16a34a,#059669);color:#fff;box-shadow:0 12px 30px rgba(6,95,70,0.12)}
+.attendance-paid-btn.not-paid{background:#fff;border:1px solid #eef2ff;color:var(--muted)}
+
+/* compact mobile tweaks */
+@media (max-width: 520px){
+  .page-hero .title{font-size:20px}
+  .roster th, .roster td{padding:8px 8px;font-size:13px}
+}
 
 .attendance .roster th, .attendance .roster td{padding:10px 12px}
 .attendance .roster td select{font-size:13px;padding:6px;border-radius:8px}
@@ -71,7 +204,7 @@ body{margin:0;padding:0;background:var(--surface);color:#111;-webkit-font-smooth
 @media (max-width: 520px){
   .table-wrap .roster{border:0}
   .table-wrap .roster thead{display:none}
-  .table-wrap .roster tbody tr{display:block;background:#fff;border-radius:10px;margin:10px 6px;padding:12px;box-shadow:0 6px 18px rgba(10,20,40,0.04)}
+  .table-wrap .roster tbody tr{display:block;background:#fff;border-radius:12px;margin:10px 6px;padding:14px;box-shadow:0 8px 24px rgba(10,20,40,0.04)}
   .table-wrap .roster tbody td{display:flex;justify-content:space-between;padding:6px 0;border-bottom:0}
   .table-wrap .roster tbody td:before{content:attr(data-label);font-weight:700;color:var(--muted);margin-right:8px}
 }

@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import { db } from '../firebase'
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore'
+import { FiUserPlus, FiMapPin, FiCheckCircle } from 'react-icons/fi'
 
 const UNIVERSITIES = [
   'Panamericana',
@@ -35,14 +36,23 @@ export default function PublicForm(){
     notes: '',
   })
   const [status, setStatus] = useState(null)
+  const [invalid, setInvalid] = useState({})
 
   const handleChange = e => {
     const { name, value } = e.target
     setForm(prev=>({ ...prev, [name]: value }))
+    // clear inline validation for this field
+    setInvalid(prev=>({ ...prev, [name]: undefined }))
   }
 
   const handleSubmit = async e =>{
     e.preventDefault()
+    // simple client-side validation
+    const required = ['firstName','lastName','university','returnTime','boardingLocation']
+    const errs = {}
+    required.forEach(k=>{ if(!form[k] || form[k] === '') errs[k] = 'Este campo es obligatorio' })
+    if(Object.keys(errs).length){ setInvalid(errs); setStatus('error'); return }
+
     setStatus('sending')
     try{
       const payload = {
@@ -67,62 +77,68 @@ export default function PublicForm(){
   }
 
   return (
-    <section>
-      <h2>Formulario público de registro de viaje</h2>
-      <form onSubmit={handleSubmit} className="form">
+    <section className="panel">
+      <div className="page-hero" style={{paddingBottom:12}}>
+        <h2 className="title"><FiMapPin style={{verticalAlign:'middle',marginRight:8}}/>Formulario público de registro de viaje</h2>
+        <div className="subtitle">Regístrate para el servicio de bus — rápido y seguro</div>
+      </div>
+      <form onSubmit={handleSubmit} className="form form-grid">
         <label>Nombre
-          <input name="firstName" value={form.firstName} onChange={handleChange} required />
+          <input className="input" name="firstName" value={form.firstName} onChange={handleChange} required />
         </label>
 
         <label>Apellido
-          <input name="lastName" value={form.lastName} onChange={handleChange} required />
+          <input className="input" name="lastName" value={form.lastName} onChange={handleChange} required />
         </label>
 
         <label>Universidad
-          <select name="university" value={form.university} onChange={handleChange} required>
+          <select className={`input ${invalid.university ? 'invalid shake' : ''}`} name="university" value={form.university} onChange={handleChange} required>
             <option value="">-- selecciona --</option>
             {UNIVERSITIES.map(u=> <option key={u} value={u}>{u}</option>)}
           </select>
+          {invalid.university && <div className="field-error">{invalid.university}</div>}
         </label>
 
         <label>Número de teléfono
-          <input name="phone" value={form.phone} onChange={handleChange} placeholder="+502 4xxxxxxx" />
+          <input className="input" name="phone" value={form.phone} onChange={handleChange} placeholder="+502 4xxxxxxx" />
         </label>
 
         <label>Horario de vuelta
-          <select name="returnTime" value={form.returnTime} onChange={handleChange} required>
+          <select className={`input ${invalid.returnTime ? 'invalid shake' : ''}`} name="returnTime" value={form.returnTime} onChange={handleChange} required>
             <option value="">-- selecciona --</option>
             <option value="16:00">4 PM</option>
             <option value="18:00">6 PM</option>
             <option value="indefinido">Indefinido</option>
           </select>
+          {invalid.returnTime && <div className="field-error">{invalid.returnTime}</div>}
         </label>
 
         <label>Lugar de abordo
-          <select name="boardingLocation" value={form.boardingLocation} onChange={handleChange} required>
+          <select className={`input ${invalid.boardingLocation ? 'invalid shake' : ''}`} name="boardingLocation" value={form.boardingLocation} onChange={handleChange} required>
             <option value="">-- selecciona --</option>
             {BOARDING.map(b=> <option key={b} value={b}>{b}</option>)}
           </select>
+          {invalid.boardingLocation && <div className="field-error">{invalid.boardingLocation}</div>}
         </label>
 
         {form.boardingLocation === 'otra' && (
           <label>Otro lugar
-            <input name="otherLocation" value={form.otherLocation} onChange={handleChange} placeholder="Especifica lugar" />
+            <input className="input" name="otherLocation" value={form.otherLocation} onChange={handleChange} placeholder="Especifica lugar" />
           </label>
         )}
 
-        <label>Observaciones (opcional)
-          <input name="notes" value={form.notes} onChange={handleChange} />
+        <label style={{gridColumn:'1 / -1'}}>Observaciones (opcional)
+          <input className="input" name="notes" value={form.notes} onChange={handleChange} />
         </label>
 
-        <button type="submit">Registrar</button>
+        <div style={{gridColumn:'1 / -1',display:'flex',justifyContent:'flex-end',gap:8}}>
+          <button type="submit" className="btn"><span style={{display:'inline-flex',alignItems:'center',gap:8}}><FiUserPlus/>Registrar</span></button>
+        </div>
       </form>
 
       {status === 'sending' && <p>Enviando...</p>}
       {status === 'ok' && <p className="success">Registro enviado. Gracias.</p>}
       {status === 'error' && <p className="error">Ocurrió un error. Intenta de nuevo.</p>}
-
-      <p className="note">Nota: El admin podrá ver y marcar pagos en el roster.</p>
     </section>
   )
 }

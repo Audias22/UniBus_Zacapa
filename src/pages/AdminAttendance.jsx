@@ -3,6 +3,7 @@ import { auth, db } from '../firebase'
 import { signInWithEmailAndPassword, signOut } from 'firebase/auth'
 import { collection, onSnapshot, query, orderBy, addDoc, serverTimestamp, writeBatch, doc } from 'firebase/firestore'
 import * as XLSX from 'xlsx'
+import { FiLogOut, FiSave, FiDownload, FiUpload, FiCheckCircle, FiCalendar, FiUser } from 'react-icons/fi'
 
 function nextSaturdayId(){
   const d = new Date()
@@ -26,6 +27,7 @@ export default function AdminAttendance(){
   const [attendance, setAttendance] = useState({})
   const [attendanceRows, setAttendanceRows] = useState([])
   const [displayRows, setDisplayRows] = useState([])
+  const [flashId, setFlashId] = useState(null)
   const [weekId, setWeekId] = useState(nextSaturdayId())
   const [weekNote, setWeekNote] = useState('')
 
@@ -120,6 +122,9 @@ export default function AdminAttendance(){
 
   const togglePresent = (id)=>{
     setAttendance(a=>({ ...a, [id]: { ...(a[id]||{}), present: !((a[id]||{}).present) } }))
+    // add micro-animation: flash row when toggled
+    setFlashId(id)
+    setTimeout(()=> setFlashId(null), 650)
   }
 
   const setTripType = (id, type)=>{
@@ -435,19 +440,22 @@ export default function AdminAttendance(){
 
   return (
     <section className="panel attendance">
-      <div className="header" style={{justifyContent:'space-between'}}>
+      <div className="header header-strong" style={{justifyContent:'space-between'}}>
         <div>
-          <h2 className="title">Pasar lista — Semana: {weekId}</h2>
-          <div className="subtitle">Usuario: {user.email}</div>
+          <h2 className="title">Pasar lista <span className="muted">— Semana:</span> <span className="week-title">{weekId}</span></h2>
+          <div className="page-meta" style={{marginTop:8}}>
+            <span className="chip"><FiCalendar style={{verticalAlign:'middle',marginRight:6}}/> {(() => { const p=weekId.split('-'); return p.length===3? `${p[2]}/${p[1]}/${p[0]}`: weekId })()}</span>
+            <span className="chip muted"><FiUser style={{verticalAlign:'middle',marginRight:6}}/> {user.email}</span>
+          </div>
         </div>
         <div>
-          <button className="btn secondary" onClick={handleLogout}>Cerrar sesión</button>
+          <button className="btn secondary" onClick={handleLogout} title="Cerrar sesión"><span style={{display:'inline-flex',alignItems:'center',gap:8}}><FiLogOut/>Cerrar sesión</span></button>
         </div>
       </div>
         <div className="controls">
-        <label style={{display:'inline-flex',alignItems:'center',gap:8}}>Seleccionar sábado: <input className="input" type="date" value={weekId} onChange={handleWeekChange} /></label>
-        <button className="btn" onClick={saveAttendance}>Guardar asistencia</button>
-        <button className="btn secondary" onClick={exportXLSX} style={{marginLeft:8}}>Exportar XLSX</button>
+  <label style={{display:'inline-flex',alignItems:'center',gap:8}}>Seleccionar sábado: <input className="input" type="date" value={weekId} onChange={handleWeekChange} /></label>
+  <button className="btn" onClick={saveAttendance}><span style={{display:'inline-flex',alignItems:'center',gap:8}}><FiSave/>Guardar asistencia</span></button>
+  <button className="btn secondary" onClick={exportXLSX} style={{marginLeft:8}}><span style={{display:'inline-flex',alignItems:'center',gap:8}}><FiDownload/>Exportar XLSX</span></button>
       </div>
       {weekNote && <p className="note" style={{marginTop:4}}>{weekNote}</p>}
 
@@ -483,8 +491,8 @@ export default function AdminAttendance(){
               const tripFromRow = r.tripType || r.tripType || 'ida'
               const t = attendance[regId]?.tripType || tripFromRow
               return (
-              <tr key={regId}>
-                <td><input type="checkbox" checked={!!(attendance[regId]?.present)} onChange={()=>togglePresent(regId)} /></td>
+              <tr key={regId} className={flashId === regId ? 'flash' : ''}>
+          <td><input type="checkbox" checked={!!(attendance[regId]?.present)} onChange={()=>togglePresent(regId)} /></td>
                 <td>{r.firstName || r.name || (r.firstName && r.lastName ? `${r.firstName} ${r.lastName}` : '')}</td>
                 <td>{uni}</td>
                 <td>{place}</td>

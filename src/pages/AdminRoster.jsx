@@ -2,6 +2,7 @@ import React, { useEffect, useState, useMemo } from 'react'
 import { auth, db } from '../firebase'
 import { signInWithEmailAndPassword, signOut } from 'firebase/auth'
 import { collection, onSnapshot, query, orderBy, doc, updateDoc } from 'firebase/firestore'
+import { FiLogOut, FiSearch, FiChevronLeft, FiChevronRight, FiAlertCircle } from 'react-icons/fi'
 
 export default function AdminRoster(){
   const [user, setUser] = useState(null)
@@ -112,12 +113,17 @@ export default function AdminRoster(){
           <h2 className="title">Roster — Admin</h2>
           <div className="subtitle">Bienvenido: {user.email}</div>
         </div>
-        <div>
-          <button className="btn secondary" onClick={handleLogout}>Cerrar sesión</button>
+        <div style={{display:'flex',gap:8,alignItems:'center'}}>
+          <button className="btn secondary" onClick={handleLogout} title="Cerrar sesión">
+            <span style={{display:'inline-flex',alignItems:'center',gap:8}}><FiLogOut />Cerrar sesión</span>
+          </button>
         </div>
       </div>
       <div className="controls">
-        <input className="input" placeholder="Buscar por nombre o apellido" value={search} onChange={e=>{setSearch(e.target.value); setPage(0)}} />
+        <div style={{position:'relative',display:'inline-flex',alignItems:'center'}}>
+          <FiSearch style={{position:'absolute',left:10,top:'50%',transform:'translateY(-50%)',color:'var(--muted)'}} />
+          <input className="input" placeholder="Buscar por nombre o apellido" value={search} onChange={e=>{setSearch(e.target.value); setPage(0)}} style={{paddingLeft:36}} />
+        </div>
         <select className="input" value={filterUniversity} onChange={e=>{setFilterUniversity(e.target.value); setPage(0)}}>
           <option value="">Todas las universidades</option>
           {[...new Set(rows.map(r=>r.university).filter(Boolean))].map(u=> <option key={u} value={u}>{u}</option>)}
@@ -172,7 +178,7 @@ export default function AdminRoster(){
             const pageRows = filtered.slice(start, start + PAGE_SIZE)
 
             return pageRows.map(r=> (
-              <tr key={r.id}>
+              <tr key={r.id} className={r.notes ? 'has-note' : ''}>
                 <td>
                   {r.firstName}
                     {r.notes ? (
@@ -182,7 +188,7 @@ export default function AdminRoster(){
                         aria-label="Observación"
                         onClick={()=>setNoteModal(r)}
                       >
-                        ⚠️
+                        <FiAlertCircle />
                       </button>
                     ) : null}
                 </td>
@@ -210,9 +216,9 @@ export default function AdminRoster(){
 
       {/* pagination controls */}
       <div style={{marginTop:10}}>
-        <button onClick={()=>setPage(p=>Math.max(0,p-1))} disabled={page===0}>Anterior</button>
-        <span style={{margin:'0 8px'}}>Página {page+1}</span>
-        <button onClick={()=>setPage(p=>p+1)} disabled={(page+1)*PAGE_SIZE >= rows.length}>Siguiente</button>
+  <button className="btn ghost" onClick={()=>setPage(p=>Math.max(0,p-1))} disabled={page===0} title="Anterior"><FiChevronLeft /></button>
+  <span style={{margin:'0 8px'}}>Página {page+1}</span>
+  <button className="btn ghost" onClick={()=>setPage(p=>p+1)} disabled={(page+1)*PAGE_SIZE >= rows.length} title="Siguiente"><FiChevronRight /></button>
       </div>
       {noteModal && (
         <div className="modal-overlay" onClick={()=>setNoteModal(null)}>
