@@ -147,11 +147,30 @@ export default function AdminAttendance(){
     const colRef = collection(db, 'attendance', weekId, 'records')
     let count = 0
     try{
+      // Build a map of existing attendance docs by registrationId so we update
+      // the already-created document (regardless of its doc id) instead of
+      // creating a new doc and leaving the old auto-ID duplicates.
+      const existingMap = {}
+      for(const ar of attendanceRows || []){
+        if(ar.registrationId) {
+          // if multiple docs exist for same registrationId, keep the first one
+          if(!existingMap[ar.registrationId]) existingMap[ar.registrationId] = ar
+        }
+      }
+
       for(const r of rows){
         const a = attendance[r.id]
         if(a && a.present){
           const trip = a.tripType || r.tripType || 'ida'
-          const recRef = doc(colRef)
+          const existing = existingMap[r.id]
+          let recRef
+          if(existing && existing.id){
+            // Update the existing document (prevents duplicating auto-ID docs)
+            recRef = doc(colRef, existing.id)
+          } else {
+            // No existing doc found: create/update a deterministic doc id
+            recRef = doc(colRef, r.id)
+          }
           batch.set(recRef, {
             registrationId: r.id,
             firstName: r.firstName,
@@ -164,7 +183,7 @@ export default function AdminAttendance(){
             collectorUid: user.uid,
             timestamp: serverTimestamp(),
             notes: r.notes || ''
-          })
+          }, { merge: true })
           count++
         }
       }
