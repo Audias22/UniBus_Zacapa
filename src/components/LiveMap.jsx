@@ -239,15 +239,17 @@ export default function LiveMap({ vehicleId = import.meta.env.VITE_PUBLIC_VEHICL
         ) : 'Sin datos del bus aún'}
       </div>
 
-      <div style={{ marginTop: 8, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+      <div style={{ marginTop: 8, display: 'grid', gridTemplateColumns: etaSegundos ? '1fr 1fr' : '1fr', gap: 8 }}>
         <div className="panel">
           <div><strong>Distancia</strong></div>
           <div>{distanciaActual ? `${(distanciaActual).toFixed(0)} m (${(distanciaActual/1000).toFixed(3)} km)` : '—'}</div>
         </div>
-        <div className="panel">
-          <div><strong>ETA</strong></div>
-          <div>{etaSegundos ? `${Math.round(etaSegundos/60)} min (${Math.round(etaSegundos)} s)` : '— (velocidad no disponible)'}</div>
-        </div>
+        {etaSegundos ? (
+          <div className="panel">
+            <div><strong>ETA</strong></div>
+            <div>{`${Math.round(etaSegundos/60)} min (${Math.round(etaSegundos)} s)`}</div>
+          </div>
+        ) : null}
       </div>
 
       <div style={{ marginTop: 8 }} className="panel">

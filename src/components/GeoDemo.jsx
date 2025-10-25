@@ -145,7 +145,9 @@ export default function GeoDemo() {
         <div>Distancia: <strong>{distanciaActual ? `${(distanciaActual/1000).toFixed(3)} km` : '—'}</strong></div>
         <div>Velocidad (m/s): <strong>{velocidad ?? '—'}</strong></div>
         <div>Estado: <strong>{estado}</strong></div>
-        <div>ETA: <strong>{etaSegundos ? `${Math.round(etaSegundos/60)} min (${Math.round(etaSegundos)} s)` : '—'}</strong></div>
+        {etaSegundos ? (
+          <div>ETA: <strong>{`${Math.round(etaSegundos/60)} min (${Math.round(etaSegundos)} s)`}</strong></div>
+        ) : null}
       </div>
 
       <div style={{ marginTop: 12 }} className="panel">
