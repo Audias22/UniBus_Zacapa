@@ -1,21 +1,13 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState, useRef } from 'react'
 import { MapContainer, TileLayer, CircleMarker, useMap, Polyline } from 'react-leaflet'
 import { collection, query, orderBy, limit, onSnapshot } from 'firebase/firestore'
 import { db } from '../firebase'
 import { distanciaHaversine, calcularETA, estaAcercando } from '../utils/geolocalizacion'
 
-function CenterMap({ pos }) {
+function FitBounds({ points = [], userInteracted = false }) {
   const map = useMap()
   useEffect(() => {
-    if (!pos) return
-    try { map.setView([pos.lat, pos.lng], 15) } catch (e) {}
-  }, [pos, map])
-  return null
-}
-
-function FitBounds({ points = [] }) {
-  const map = useMap()
-  useEffect(() => {
+    if (userInteracted) return
     const pts = points.filter(Boolean)
     if (!pts.length) return
     try {
@@ -39,6 +31,9 @@ export default function LiveMap({ vehicleId = import.meta.env.VITE_PUBLIC_VEHICL
   const [ubicacionActivo, setUbicacionActivo] = useState(false)
   const [errorMsg, setErrorMsg] = useState(null)
   const [historialDistancias, setHistorialDistancias] = useState([])
+  const [map, setMap] = useState(null)
+  const [userInteracted, setUserInteracted] = useState(false)
+  const firstCenteredRef = useRef(false)
 
   useEffect(() => {
     if (!activeVehicleId) {
@@ -86,6 +81,23 @@ export default function LiveMap({ vehicleId = import.meta.env.VITE_PUBLIC_VEHICL
     })
     return () => unsub()
   }, [activeVehicleId])
+
+  // center/pan logic: move map to latest pos unless user interacted
+  useEffect(() => {
+    if (!map || !pos) return
+    try {
+      if (userInteracted) return
+      // on first time, set view (keep current zoom), afterwards pan to preserve zoom
+      if (!firstCenteredRef.current) {
+        try { map.setView([pos.lat, pos.lng], map.getZoom()) } catch(e) { map.panTo([pos.lat, pos.lng]) }
+        firstCenteredRef.current = true
+      } else {
+        map.panTo([pos.lat, pos.lng])
+      }
+    } catch (err) {
+      console.error('center/pan error', err)
+    }
+  }, [map, pos, userInteracted])
   // (no-op extra effect removed)
 
   // actualizar historial de distancias cuando cambie la posición del bus o del estudiante
@@ -174,16 +186,23 @@ export default function LiveMap({ vehicleId = import.meta.env.VITE_PUBLIC_VEHICL
   return (
     <div className="panel" style={{ padding: 8 }}>
       <h4 style={{marginTop:0}}>Mini mapa (posición real)</h4>
-      <div style={{ display:'flex', gap:8, alignItems:'center', marginBottom:8 }}>
-        <label style={{fontSize:13, color:'#374151'}}>Escuchar vehicleId:</label>
-        <input value={manualVid} onChange={e=>setManualVid(e.target.value)} placeholder={activeVehicleId || 'vehicle id'} style={{padding:'6px 8px',borderRadius:8,border:'1px solid #e5e7eb'}} />
+      <div style={{ display:'flex', gap:8, alignItems:'center', marginBottom:8, flexWrap:'wrap' }}>
+        <label style={{fontSize:13, color:'#374151', minWidth:120}}>Escuchar vehicleId:</label>
+        <input value={manualVid} onChange={e=>setManualVid(e.target.value)} placeholder={activeVehicleId || 'vehicle id'} style={{padding:'8px 10px',borderRadius:8,border:'1px solid #e5e7eb',flex:'1 1 180px',minWidth:120}} />
         <button className="btn" onClick={()=>{ if(manualVid) setActiveVehicleId(manualVid) }}>Escuchar</button>
         <button className="btn ghost" onClick={()=>{ setActiveVehicleId(import.meta.env.VITE_PUBLIC_VEHICLE_ID || 'bus-1'); setManualVid('') }}>Preset: env/bus-1</button>
         <div style={{marginLeft:'auto', fontSize:13, color:'#6b7280'}}>Escuchando: <strong>{activeVehicleId || '—'}</strong></div>
       </div>
 
       <div style={{ height, borderRadius: 8, overflow: 'hidden' }}>
-        <MapContainer center={[14.95, -89.53]} zoom={13} style={{ height: '100%', width: '100%' }} scrollWheelZoom={false}>
+        <MapContainer center={[14.95, -89.53]} zoom={13} style={{ height: '100%', width: '100%' }} scrollWheelZoom={false} whenCreated={(m) => {
+          setMap(m)
+          // attach interaction listeners to avoid overwriting user's zoom/pan
+          try {
+            m.on('zoomstart', () => setUserInteracted(true))
+            m.on('dragstart', () => setUserInteracted(true))
+          } catch (e) {}
+        }}>
           <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" attribution='&copy; OpenStreetMap' />
           {positions && positions.length > 0 && (
             <Polyline positions={positions.map(p => [p.lat, p.lng])} pathOptions={{ color: '#f97316', weight: 3, opacity: 0.6 }} />
@@ -194,8 +213,7 @@ export default function LiveMap({ vehicleId = import.meta.env.VITE_PUBLIC_VEHICL
           {pos && studentPos && (
             <Polyline positions={[[pos.lat, pos.lng], [studentPos.lat, studentPos.lng]]} pathOptions={{ color: '#60a5fa', dashArray: '6', weight: 2 }} />
           )}
-          <CenterMap pos={pos} />
-          <FitBounds points={[pos, studentPos]} />
+          <FitBounds points={[pos, studentPos]} userInteracted={userInteracted} />
         </MapContainer>
       </div>
 

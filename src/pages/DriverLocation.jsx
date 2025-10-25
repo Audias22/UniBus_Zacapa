@@ -135,17 +135,21 @@ export default function DriverLocation() {
 
       <div style={{marginTop:12}}>
         {!user ? (
-          <form onSubmit={login} className="panel" style={{display:'grid',gap:8}}>
+          <form onSubmit={login} className="panel form form-grid" style={{gap:12}}>
+            <div style={{gridColumn:'1 / -1'}}>
+              <h3 style={{margin:0}}>Iniciar sesión (conductor)</h3>
+            </div>
+
             <label>Correo
-              <input className="input" value={email} onChange={e=>setEmail(e.target.value)} placeholder="driver@unibus.test" />
+              <input className="input" value={email} onChange={e=>setEmail(e.target.value)} placeholder="driver@unibus.test" required />
             </label>
             <label>Contraseña
-              <input type="password" className="input" value={password} onChange={e=>setPassword(e.target.value)} placeholder="password123" />
+              <input type="password" className="input" value={password} onChange={e=>setPassword(e.target.value)} placeholder="password123" required />
             </label>
-            <div style={{display:'flex',gap:8}}>
+
+            <div style={{gridColumn:'1 / -1',display:'flex',justifyContent:'flex-end',gap:8}}>
               <button className="btn" type="submit">Iniciar sesión</button>
             </div>
-            <div className="note">Crea el usuario en Firebase Authentication antes de usar esto.</div>
           </form>
         ) : (
           <div className="panel">
