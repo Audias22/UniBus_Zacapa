@@ -24,8 +24,8 @@ service cloud.firestore {
     match /vehicles/{vehicleId}/positions/{posId} {
       // permitir crear y actualizar posiciones solo si el uid coincide con vehicleId
       allow create, update: if request.auth != null && request.auth.uid == vehicleId;
-      // permitir lectura solo al propietario (conductor autenticado con el mismo uid)
-      allow read: if request.auth != null && request.auth.uid == vehicleId;
+      // permitir lectura pública para que el público (alumnos) vea la posición en tiempo real
+      allow read: if true;
       // no permitir borrados desde el cliente
       allow delete: if false;
     }

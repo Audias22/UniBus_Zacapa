@@ -13,6 +13,15 @@ export async function enviarPing(vehicleId, lat, lng, velocidad = null, heading 
   try {
     const a = getAuth();
     if (!vid && a && a.currentUser) vid = a.currentUser.uid
+    // fallback: si no hay usuario autenticado, permitir una vehicleId por variable de entorno
+    if (!vid) {
+      try {
+        const envVid = import.meta.env.VITE_PUBLIC_VEHICLE_ID || import.meta.env.VITE_DRIVER_DEFAULT_VEHICLE_ID
+        if (envVid) vid = envVid
+      } catch (e) {
+        // ignore env read failures
+      }
+    }
   } catch (e) {
     // ignore
   }

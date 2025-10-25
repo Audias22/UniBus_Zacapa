@@ -78,6 +78,7 @@ export default function PublicForm(){
 
   return (
     <section className="panel">
+      {/* Mini-mapa removido de esta vista por solicitud del usuario */}
       <div className="page-hero" style={{paddingBottom:12}}>
         <h2 className="title"><FiMapPin style={{verticalAlign:'middle',marginRight:8}}/>Formulario público de registro de viaje</h2>
         <div className="subtitle">Regístrate para el servicio de bus — rápido y seguro</div>
