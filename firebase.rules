@@ -19,6 +19,17 @@ service cloud.firestore {
                    && request.auth.token.email == 'rguevaram1@miumg.edu.gt';
     }
 
+    // Vehículos: cada conductor autenticado puede escribir/leer únicamente
+    // en su propia colección de posiciones: vehicles/{uid}/positions/{posId}
+    match /vehicles/{vehicleId}/positions/{posId} {
+      // permitir crear y actualizar posiciones solo si el uid coincide con vehicleId
+      allow create, update: if request.auth != null && request.auth.uid == vehicleId;
+      // permitir lectura solo al propietario (conductor autenticado con el mismo uid)
+      allow read: if request.auth != null && request.auth.uid == vehicleId;
+      // no permitir borrados desde el cliente
+      allow delete: if false;
+    }
+
     // Default: denegar todo lo demás
     match /{document=**} {
       allow read, write: if false;
