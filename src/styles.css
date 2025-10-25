@@ -41,7 +41,12 @@ html, body {
 
   font-family: Inter, system-ui, Arial, sans-serif;
 }
-body{margin:0;padding:0;background:linear-gradient(180deg,#f8fbff,#f6f8fb);color:#0f172a;-webkit-font-smoothing:antialiased}
+body{margin:0;padding:0;color:#0f172a;-webkit-font-smoothing:antialiased;
+  /* Soft elegant background: subtle radial glow + light vertical gradient */
+  background-color: #f6f9fc;
+  background-image: radial-gradient(800px 260px at 8% 6%, rgba(14,165,233,0.04), transparent 14%),
+                    linear-gradient(180deg, #fbfdff 0%, #edf6ff 100%);
+}
 .app{max-width:1180px; width: min(1180px, calc(100% - 56px)); margin:28px auto; padding:28px; background:transparent}
 
 /* Compact layout variables */
