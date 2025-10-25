@@ -32,14 +32,19 @@ export default function LiveMap({ vehicleId = import.meta.env.VITE_PUBLIC_VEHICL
   const [pos, setPos] = useState(null)
   const [velocidad, setVelocidad] = useState(null)
   const [positions, setPositions] = useState([]) // últimas posiciones del bus
+  const [activeVehicleId, setActiveVehicleId] = useState(vehicleId || '') // control para elegir qué vehicleId escuchar
+  const [manualVid, setManualVid] = useState('')
+  const [lastPingInfo, setLastPingInfo] = useState(null)
   const [studentPos, setStudentPos] = useState(null)
   const [ubicacionActivo, setUbicacionActivo] = useState(false)
   const [errorMsg, setErrorMsg] = useState(null)
   const [historialDistancias, setHistorialDistancias] = useState([])
 
   useEffect(() => {
-    if (!vehicleId) return
-    const col = collection(db, `vehicles/${vehicleId}/positions`)
+    if (!activeVehicleId) {
+      setPos(null); setPositions([]); setVelocidad(null); setLastPingInfo(null); return
+    }
+    const col = collection(db, `vehicles/${activeVehicleId}/positions`)
     // pedimos últimas 5 posiciones para dibujar historial y estimar velocidad si hace falta
     const q = query(col, orderBy('ts', 'desc'), limit(5))
     const unsub = onSnapshot(q, snap => {
@@ -59,6 +64,7 @@ export default function LiveMap({ vehicleId = import.meta.env.VITE_PUBLIC_VEHICL
       // primera entrada es la más reciente
       const latest = parsed[0]
       setPos(latest ? { lat: latest.lat, lng: latest.lng, ts: latest.ts } : null)
+      setLastPingInfo(latest || null)
 
       // determinar velocidad: preferir la proporcionada por el ping, sino estimar por diferencia entre las dos primeras posiciones
       if (latest && latest.velocidad != null) {
@@ -79,7 +85,8 @@ export default function LiveMap({ vehicleId = import.meta.env.VITE_PUBLIC_VEHICL
       console.error('LiveMap snapshot error', err)
     })
     return () => unsub()
-  }, [vehicleId])
+  }, [activeVehicleId])
+  // (no-op extra effect removed)
 
   // actualizar historial de distancias cuando cambie la posición del bus o del estudiante
   useEffect(() => {
@@ -167,6 +174,14 @@ export default function LiveMap({ vehicleId = import.meta.env.VITE_PUBLIC_VEHICL
   return (
     <div className="panel" style={{ padding: 8 }}>
       <h4 style={{marginTop:0}}>Mini mapa (posición real)</h4>
+      <div style={{ display:'flex', gap:8, alignItems:'center', marginBottom:8 }}>
+        <label style={{fontSize:13, color:'#374151'}}>Escuchar vehicleId:</label>
+        <input value={manualVid} onChange={e=>setManualVid(e.target.value)} placeholder={activeVehicleId || 'vehicle id'} style={{padding:'6px 8px',borderRadius:8,border:'1px solid #e5e7eb'}} />
+        <button className="btn" onClick={()=>{ if(manualVid) setActiveVehicleId(manualVid) }}>Escuchar</button>
+        <button className="btn ghost" onClick={()=>{ setActiveVehicleId(import.meta.env.VITE_PUBLIC_VEHICLE_ID || 'bus-1'); setManualVid('') }}>Preset: env/bus-1</button>
+        <div style={{marginLeft:'auto', fontSize:13, color:'#6b7280'}}>Escuchando: <strong>{activeVehicleId || '—'}</strong></div>
+      </div>
+
       <div style={{ height, borderRadius: 8, overflow: 'hidden' }}>
         <MapContainer center={[14.95, -89.53]} zoom={13} style={{ height: '100%', width: '100%' }} scrollWheelZoom={false}>
           <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" attribution='&copy; OpenStreetMap' />
@@ -194,7 +209,16 @@ export default function LiveMap({ vehicleId = import.meta.env.VITE_PUBLIC_VEHICL
       </div>
 
       <div style={{marginTop:8,fontSize:12,color:'#374151'}}>
-        {pos ? `Última posición bus: ${pos.ts ? pos.ts.toISOString() : '—'}` : 'Sin datos del bus aún'}
+        {pos ? (
+          <div>
+            <div>Última posición bus: {pos.ts ? pos.ts.toISOString() : '—'}</div>
+            {lastPingInfo && (
+              <div style={{marginTop:6,fontSize:12,color:'#6b7280'}}>
+                Lat: {lastPingInfo.lat}, Lng: {lastPingInfo.lng} {lastPingInfo.velocidad != null ? `· Vel: ${lastPingInfo.velocidad} m/s` : ''}
+              </div>
+            )}
+          </div>
+        ) : 'Sin datos del bus aún'}
       </div>
 
       <div style={{ marginTop: 8, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
