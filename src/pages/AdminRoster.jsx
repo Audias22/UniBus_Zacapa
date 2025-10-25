@@ -92,7 +92,7 @@ export default function AdminRoster(){
           </label>
           <button type="submit" className="btn">Ingresar</button>
         </form>
-        <p className="note">Crear el usuario admin desde la consola de Firebase (Authentication) y usa ese correo aquí.</p>
+        
       </section>
     )
   }
