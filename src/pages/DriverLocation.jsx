@@ -56,7 +56,16 @@ export default function DriverLocation() {
       }
     }, (err) => {
       console.error('watchPosition error', err)
-      setMensaje('Error de geolocalización: ' + err.message)
+      // err.code: 1 = PERMISSION_DENIED, 2 = POSITION_UNAVAILABLE, 3 = TIMEOUT
+      if (err && err.code === 1) {
+        setMensaje('Permiso de ubicación denegado. Asegúrate de permitir el acceso a la ubicación en el navegador y que la página esté cargada desde https o localhost.');
+      } else if (err && err.code === 2) {
+        setMensaje('Posición no disponible. Intenta de nuevo o verifica la señal GPS.');
+      } else if (err && err.code === 3) {
+        setMensaje('Timeout al obtener posición. Aumenta el timeout o comprueba la conexión.');
+      } else {
+        setMensaje('Error de geolocalización: ' + (err && err.message ? err.message : String(err)))
+      }
     }, { enableHighAccuracy: true, maximumAge: 1000, timeout: 10000 })
 
     watchIdRef.current = id

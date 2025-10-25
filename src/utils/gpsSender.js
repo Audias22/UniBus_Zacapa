@@ -26,8 +26,16 @@ export async function enviarPing(vehicleId, lat, lng, velocidad = null, heading 
     extra: extra || {},
     ts: serverTimestamp(),
   }
-  const docRef = await addDoc(colRef, payload)
-  return docRef.id
+  try {
+    const docRef = await addDoc(colRef, payload)
+    return docRef.id
+  } catch (err) {
+    // Normalize Firestore permission errors to provide clearer instruction
+    if (err && err.code && err.code === 'permission-denied') {
+      throw new Error('Missing or insufficient permissions. Revisa las reglas de Firestore (archivo firebase.rules en el repo) y despliega las reglas para permitir que el usuario autenticado escriba en vehicles/{uid}/positions.');
+    }
+    throw err
+  }
 }
 
 export default enviarPing

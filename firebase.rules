@@ -1,0 +1,27 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Permitir crear registros públicos (formulario)
+    match /registrations/{regId} {
+      allow create: if true;
+      allow read: if request.auth != null;
+      // Permitir update/delete al admin con email específico (sin requerir custom claim)
+      allow update, delete: if request.auth != null
+                           && request.auth.token.email == 'rguevaram1@miumg.edu.gt';
+    }
+
+    // Attendance: lectura/escritura SOLO para el admin con ese email
+    match /attendance/{weekId}/records/{recId} {
+      allow read: if request.auth != null
+                  && request.auth.token.email == 'rguevaram1@miumg.edu.gt';
+      allow write: if request.auth != null
+                   && request.auth.token.email == 'rguevaram1@miumg.edu.gt';
+    }
+
+    // Default: denegar todo lo demás
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
