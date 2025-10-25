@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { MapContainer, TileLayer, CircleMarker, useMap } from 'react-leaflet'
+import { MapContainer, TileLayer, CircleMarker, useMap, Polyline } from 'react-leaflet'
 import { collection, query, orderBy, limit, onSnapshot } from 'firebase/firestore'
 import { db } from '../firebase'
 import { distanciaHaversine, calcularETA, estaAcercando } from '../utils/geolocalizacion'
@@ -31,6 +31,7 @@ function FitBounds({ points = [] }) {
 export default function LiveMap({ vehicleId = import.meta.env.VITE_PUBLIC_VEHICLE_ID || 'bus-1', height = 180 }){
   const [pos, setPos] = useState(null)
   const [velocidad, setVelocidad] = useState(null)
+  const [positions, setPositions] = useState([]) // últimas posiciones del bus
   const [studentPos, setStudentPos] = useState(null)
   const [ubicacionActivo, setUbicacionActivo] = useState(false)
   const [errorMsg, setErrorMsg] = useState(null)
@@ -39,14 +40,41 @@ export default function LiveMap({ vehicleId = import.meta.env.VITE_PUBLIC_VEHICL
   useEffect(() => {
     if (!vehicleId) return
     const col = collection(db, `vehicles/${vehicleId}/positions`)
-    const q = query(col, orderBy('ts', 'desc'), limit(1))
+    // pedimos últimas 5 posiciones para dibujar historial y estimar velocidad si hace falta
+    const q = query(col, orderBy('ts', 'desc'), limit(5))
     const unsub = onSnapshot(q, snap => {
-      if (snap.empty) return setPos(null)
-      const doc = snap.docs[0]
-      const data = doc.data()
-      if (!data) return setPos(null)
-      setPos({ lat: data.lat, lng: data.lng, ts: data.ts?.toDate?.() ?? null })
-      setVelocidad(data.velocidad ?? null)
+      if (snap.empty) return (setPos(null), setPositions([]), setVelocidad(null))
+      const docs = snap.docs
+      const parsed = docs.map(d => {
+        const data = d.data()
+        return {
+          id: d.id,
+          lat: data.lat,
+          lng: data.lng,
+          velocidad: data.velocidad ?? null,
+          ts: data.ts?.toDate?.() ?? null,
+        }
+      })
+      setPositions(parsed)
+      // primera entrada es la más reciente
+      const latest = parsed[0]
+      setPos(latest ? { lat: latest.lat, lng: latest.lng, ts: latest.ts } : null)
+
+      // determinar velocidad: preferir la proporcionada por el ping, sino estimar por diferencia entre las dos primeras posiciones
+      if (latest && latest.velocidad != null) {
+        setVelocidad(latest.velocidad)
+      } else if (parsed.length > 1 && parsed[0].ts && parsed[1].ts) {
+        const p0 = parsed[0]
+        const p1 = parsed[1]
+        const dt = (p0.ts.getTime() - p1.ts.getTime()) / 1000 // segundos
+        if (dt > 0) {
+          const d = distanciaHaversine(p0.lat, p0.lng, p1.lat, p1.lng)
+          const v = d / dt
+          setVelocidad(Number(v.toFixed(2)))
+        }
+      } else {
+        setVelocidad(null)
+      }
     }, err => {
       console.error('LiveMap snapshot error', err)
     })
@@ -131,7 +159,8 @@ export default function LiveMap({ vehicleId = import.meta.env.VITE_PUBLIC_VEHICL
     setErrorMsg(null)
   }
 
-  const distanciaActual = (pos && studentPos) ? historialDistancias[historialDistancias.length - 1] ?? distanciaHaversine(pos.lat, pos.lng, studentPos.lat, studentPos.lng) : null
+  // recalculamos distancia directa y ETA con la velocidad estimada/proporcionada
+  const distanciaActual = (pos && studentPos) ? distanciaHaversine(pos.lat, pos.lng, studentPos.lat, studentPos.lng) : null
   const etaSegundos = (distanciaActual && velocidad) ? calcularETA(distanciaActual, velocidad) : null
   const estado = estaAcercando(historialDistancias, 1)
 
@@ -141,8 +170,15 @@ export default function LiveMap({ vehicleId = import.meta.env.VITE_PUBLIC_VEHICL
       <div style={{ height, borderRadius: 8, overflow: 'hidden' }}>
         <MapContainer center={[14.95, -89.53]} zoom={13} style={{ height: '100%', width: '100%' }} scrollWheelZoom={false}>
           <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" attribution='&copy; OpenStreetMap' />
+          {positions && positions.length > 0 && (
+            <Polyline positions={positions.map(p => [p.lat, p.lng])} pathOptions={{ color: '#f97316', weight: 3, opacity: 0.6 }} />
+          )}
           {pos && <CircleMarker center={[pos.lat, pos.lng]} pathOptions={{ color: '#ef4444' }} radius={8} />}
           {studentPos && <CircleMarker center={[studentPos.lat, studentPos.lng]} pathOptions={{ color: '#059669' }} radius={6} />}
+          {/* línea directa bus -> alumno */}
+          {pos && studentPos && (
+            <Polyline positions={[[pos.lat, pos.lng], [studentPos.lat, studentPos.lng]]} pathOptions={{ color: '#60a5fa', dashArray: '6', weight: 2 }} />
+          )}
           <CenterMap pos={pos} />
           <FitBounds points={[pos, studentPos]} />
         </MapContainer>
