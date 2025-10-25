@@ -77,14 +77,19 @@ export default function LiveMap({ vehicleId = import.meta.env.VITE_PUBLIC_VEHICL
       // Si el entorno provee watchPosition como función, úsala
       const watchFn = geo && geo.watchPosition
       if (typeof watchFn === 'function') {
-        // use call to ensure correct receiver
-        const watcher = watchFn.call(geo, (p) => {
-          setStudentPos({ lat: p.coords.latitude, lng: p.coords.longitude })
-        }, (err) => {
-          setErrorMsg(err.message || 'Error al obtener ubicación')
-          setUbicacionActivo(false)
-        }, { enableHighAccuracy: true, maximumAge: 5000, timeout: 10000 })
-        (window.__unibus_geowatcher__ = window.__unibus_geowatcher__ || ({})).watcher = watcher
+        try {
+          // call directly; if environment misbehaves la llamada caerá al catch y usaremos el fallback
+          const watcher = geo.watchPosition((p) => {
+            setStudentPos({ lat: p.coords.latitude, lng: p.coords.longitude })
+          }, (err) => {
+            setErrorMsg(err.message || 'Error al obtener ubicación')
+            setUbicacionActivo(false)
+          }, { enableHighAccuracy: true, maximumAge: 5000, timeout: 10000 })
+          (window.__unibus_geowatcher__ = window.__unibus_geowatcher__ || ({})).watcher = watcher
+        } catch (callErr) {
+          console.warn('watchPosition call failed, falling back to getCurrentPosition polling', callErr)
+          // si falla la llamada, intentar fallback abajo (se hace nada aquí para que el flujo continúe)
+        }
       } else if (typeof geo.getCurrentPosition === 'function') {
       // Fallback: obtener posición periódicamente con getCurrentPosition
       const updateOnce = () => {
