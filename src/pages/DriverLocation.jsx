@@ -42,39 +42,79 @@ export default function DriverLocation() {
     if (!user) { setMensaje('Debe iniciar sesión antes de compartir ubicación'); return }
     if (!navigator.geolocation) { setMensaje('Geolocalización no soportada por este navegador'); return }
     setMensaje('Solicitando permiso de ubicación...')
-    const id = navigator.geolocation.watchPosition(async (pos) => {
-      const lat = pos.coords.latitude
-      const lng = pos.coords.longitude
-      const velocidad = pos.coords.speed || null
-      try {
-        await enviarPing(null, lat, lng, velocidad, pos.coords.heading || null, { source: 'driver' })
-        setUltimoPing(new Date().toISOString())
-        setMensaje('Ping enviado')
-      } catch (err) {
-        console.error('Error enviarPing', err)
-        setMensaje('Error enviando ping: ' + (err.message || err.code))
-      }
-    }, (err) => {
-      console.error('watchPosition error', err)
-      // err.code: 1 = PERMISSION_DENIED, 2 = POSITION_UNAVAILABLE, 3 = TIMEOUT
-      if (err && err.code === 1) {
-        setMensaje('Permiso de ubicación denegado. Asegúrate de permitir el acceso a la ubicación en el navegador y que la página esté cargada desde https o localhost.');
-      } else if (err && err.code === 2) {
-        setMensaje('Posición no disponible. Intenta de nuevo o verifica la señal GPS.');
-      } else if (err && err.code === 3) {
-        setMensaje('Timeout al obtener posición. Aumenta el timeout o comprueba la conexión.');
+    const geo = navigator.geolocation
+    try {
+      if (typeof geo.watchPosition === 'function') {
+        const id = geo.watchPosition(async (pos) => {
+          const lat = pos.coords.latitude
+          const lng = pos.coords.longitude
+          const velocidad = pos.coords.speed || null
+          try {
+            await enviarPing(null, lat, lng, velocidad, pos.coords.heading || null, { source: 'driver' })
+            setUltimoPing(new Date().toISOString())
+            setMensaje('Ping enviado')
+          } catch (err) {
+            console.error('Error enviarPing', err)
+            setMensaje('Error enviando ping: ' + (err.message || err.code))
+          }
+        }, (err) => {
+          console.error('watchPosition error', err)
+          if (err && err.code === 1) {
+            setMensaje('Permiso de ubicación denegado. Asegúrate de permitir el acceso a la ubicación en el navegador y que la página esté cargada desde https o localhost.');
+          } else if (err && err.code === 2) {
+            setMensaje('Posición no disponible. Intenta de nuevo o verifica la señal GPS.');
+          } else if (err && err.code === 3) {
+            setMensaje('Timeout al obtener posición. Aumenta el timeout o comprueba la conexión.');
+          } else {
+            setMensaje('Error de geolocalización: ' + (err && err.message ? err.message : String(err)))
+          }
+        }, { enableHighAccuracy: true, maximumAge: 1000, timeout: 10000 })
+        watchIdRef.current = id
+        setCompartiendo(true)
+      } else if (typeof geo.getCurrentPosition === 'function') {
+        // Fallback: poll using getCurrentPosition
+        const sendOnce = () => {
+          geo.getCurrentPosition(async (pos) => {
+            const lat = pos.coords.latitude
+            const lng = pos.coords.longitude
+            const velocidad = pos.coords.speed || null
+            try {
+              await enviarPing(null, lat, lng, velocidad, pos.coords.heading || null, { source: 'driver' })
+              setUltimoPing(new Date().toISOString())
+              setMensaje('Ping enviado')
+            } catch (err) {
+              console.error('Error enviarPing', err)
+              setMensaje('Error enviando ping: ' + (err.message || err.code))
+            }
+          }, (err) => {
+            console.error('getCurrentPosition error', err)
+            setMensaje('Error al obtener posición: ' + (err && err.message ? err.message : String(err)))
+          }, { enableHighAccuracy: true, maximumAge: 1000, timeout: 10000 })
+        }
+        sendOnce()
+        const poll = setInterval(sendOnce, 4000)
+        watchIdRef.current = { poll }
+        setCompartiendo(true)
       } else {
-        setMensaje('Error de geolocalización: ' + (err && err.message ? err.message : String(err)))
+        setMensaje('API de geolocalización no disponible')
       }
-    }, { enableHighAccuracy: true, maximumAge: 1000, timeout: 10000 })
-
-    watchIdRef.current = id
-    setCompartiendo(true)
+    } catch (err) {
+      console.error('iniciarCompartir error', err)
+      setMensaje('Error al iniciar compartir ubicación: ' + (err && err.message ? err.message : String(err)))
+    }
   }
 
   function detenerCompartir() {
     if (watchIdRef.current != null) {
-      navigator.geolocation.clearWatch(watchIdRef.current)
+      try {
+        if (typeof watchIdRef.current === 'object' && watchIdRef.current.poll) {
+          clearInterval(watchIdRef.current.poll)
+        } else {
+          navigator.geolocation.clearWatch(watchIdRef.current)
+        }
+      } catch (e) {
+        // ignore
+      }
       watchIdRef.current = null
     }
     setCompartiendo(false)

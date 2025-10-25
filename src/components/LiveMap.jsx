@@ -73,16 +73,17 @@ export default function LiveMap({ vehicleId = import.meta.env.VITE_PUBLIC_VEHICL
     setUbicacionActivo(true)
 
     const geo = navigator.geolocation
-    // Si el entorno provee watchPosition como función, úsala
-    if (typeof geo.watchPosition === 'function') {
-      const watcher = geo.watchPosition((p) => {
-        setStudentPos({ lat: p.coords.latitude, lng: p.coords.longitude })
-      }, (err) => {
-        setErrorMsg(err.message || 'Error al obtener ubicación')
-        setUbicacionActivo(false)
-      }, { enableHighAccuracy: true, maximumAge: 5000, timeout: 10000 })
-      (window.__unibus_geowatcher__ = window.__unibus_geowatcher__ || ({})).watcher = watcher
-    } else if (typeof geo.getCurrentPosition === 'function') {
+    try {
+      // Si el entorno provee watchPosition como función, úsala
+      if (typeof geo.watchPosition === 'function') {
+        const watcher = geo.watchPosition((p) => {
+          setStudentPos({ lat: p.coords.latitude, lng: p.coords.longitude })
+        }, (err) => {
+          setErrorMsg(err.message || 'Error al obtener ubicación')
+          setUbicacionActivo(false)
+        }, { enableHighAccuracy: true, maximumAge: 5000, timeout: 10000 })
+        (window.__unibus_geowatcher__ = window.__unibus_geowatcher__ || ({})).watcher = watcher
+      } else if (typeof geo.getCurrentPosition === 'function') {
       // Fallback: obtener posición periódicamente con getCurrentPosition
       const updateOnce = () => {
         geo.getCurrentPosition((p) => {
@@ -95,8 +96,13 @@ export default function LiveMap({ vehicleId = import.meta.env.VITE_PUBLIC_VEHICL
       updateOnce()
       const poller = setInterval(updateOnce, 5000)
       (window.__unibus_geowatcher__ = window.__unibus_geowatcher__ || ({})).poller = poller
-    } else {
-      setErrorMsg('API de geolocalización incompleta en este entorno')
+      } else {
+        setErrorMsg('API de geolocalización incompleta en este entorno')
+        setUbicacionActivo(false)
+      }
+    } catch (err) {
+      console.error('activarUbicacion error', err)
+      setErrorMsg('Error al activar geolocalización: ' + (err && err.message ? err.message : String(err)))
       setUbicacionActivo(false)
     }
   }
