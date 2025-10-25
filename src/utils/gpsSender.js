@@ -1,5 +1,6 @@
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore'
-import { db } from '../firebase'
+import { db, auth } from '../firebase'
+import { getAuth } from 'firebase/auth'
 
 /**
  * enviarPing(vehicleId, lat, lng, velocidad, heading, extra)
@@ -7,8 +8,16 @@ import { db } from '../firebase'
  * Las aplicaciones móviles (conductor) deberán llamar a esta función.
  */
 export async function enviarPing(vehicleId, lat, lng, velocidad = null, heading = null, extra = {}) {
-  if (!vehicleId) throw new Error('vehicleId es requerido')
-  const colRef = collection(db, 'vehicles', vehicleId, 'positions')
+  // Si no se pasa vehicleId, intentamos usar el uid del usuario autenticado
+  let vid = vehicleId
+  try {
+    const a = getAuth();
+    if (!vid && a && a.currentUser) vid = a.currentUser.uid
+  } catch (e) {
+    // ignore
+  }
+  if (!vid) throw new Error('vehicleId es requerido (o el usuario debe estar autenticado)')
+  const colRef = collection(db, 'vehicles', vid, 'positions')
   const payload = {
     lat: Number(lat),
     lng: Number(lng),

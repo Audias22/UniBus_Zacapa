@@ -4,6 +4,7 @@ import PublicForm from './pages/PublicForm'
 import AdminRoster from './pages/AdminRoster'
 import AdminAttendance from './pages/AdminAttendance'
 import GeoDemo from './components/GeoDemo'
+import DriverLocation from './pages/DriverLocation'
 
 export default function App(){
   const [route, setRoute] = useState(window.location.hash || '#/')
@@ -34,12 +35,15 @@ export default function App(){
           <a href="#/geo" className={route === '#/geo' ? 'active' : ''} aria-current={route === '#/geo' ? 'page' : undefined}>
             <span className="nav-link-inner"><FiMapPin className="icon"/>Geo Demo</span>
           </a>
+          <a href="#/driver" className={route === '#/driver' ? 'active' : ''} aria-current={route === '#/driver' ? 'page' : undefined}>
+            <span className="nav-link-inner"><FiMapPin className="icon"/>Driver</span>
+          </a>
         </nav>
       </header>
 
       <main>
         <div id="content">
-          {route === '#/geo' ? <GeoDemo/> : (route === '#/admin/attendance' ? <AdminAttendance/> : (route === '#/admin' ? <AdminRoster/> : <PublicForm/>))}
+          {route === '#/geo' ? <GeoDemo/> : (route === '#/driver' ? <DriverLocation/> : (route === '#/admin/attendance' ? <AdminAttendance/> : (route === '#/admin' ? <AdminRoster/> : <PublicForm/>)))}
         </div>
       </main>
 
