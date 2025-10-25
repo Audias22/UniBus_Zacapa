@@ -75,8 +75,10 @@ export default function LiveMap({ vehicleId = import.meta.env.VITE_PUBLIC_VEHICL
     const geo = navigator.geolocation
     try {
       // Si el entorno provee watchPosition como función, úsala
-      if (typeof geo.watchPosition === 'function') {
-        const watcher = geo.watchPosition((p) => {
+      const watchFn = geo && geo.watchPosition
+      if (typeof watchFn === 'function') {
+        // use call to ensure correct receiver
+        const watcher = watchFn.call(geo, (p) => {
           setStudentPos({ lat: p.coords.latitude, lng: p.coords.longitude })
         }, (err) => {
           setErrorMsg(err.message || 'Error al obtener ubicación')

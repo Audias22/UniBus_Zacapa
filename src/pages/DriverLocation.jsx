@@ -44,8 +44,9 @@ export default function DriverLocation() {
     setMensaje('Solicitando permiso de ubicación...')
     const geo = navigator.geolocation
     try {
-      if (typeof geo.watchPosition === 'function') {
-        const id = geo.watchPosition(async (pos) => {
+      const watchFn = geo && geo.watchPosition
+      if (typeof watchFn === 'function') {
+        const id = watchFn.call(geo, async (pos) => {
           const lat = pos.coords.latitude
           const lng = pos.coords.longitude
           const velocidad = pos.coords.speed || null
